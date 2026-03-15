@@ -34,10 +34,14 @@ return {
 
         mason_tool_installer.setup({
             ensure_installed = {
+                -- Formatters
                 "prettier", -- prettier formatter
                 "stylua", -- lua formatter
                 "isort", -- python formatter
                 "black", -- python formatter
+                "clang-format", -- cpp formatter
+
+                -- Linters
                 "pylint", -- python linter
                 "eslint_d", -- js linter
             },
