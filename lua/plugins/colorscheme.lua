@@ -1,8 +1,7 @@
 return {
     "folke/tokyonight.nvim",
     priority = 1000,
-    config = function () 
-
+    config = function()
         -- Define the color values
         local bg = "#011628"
         local bg_dark = "#011423"
@@ -13,7 +12,7 @@ return {
         local fg_dark = "#B4D0E9"
         local fg_gutter = "#627E97"
         local border = "#547998"
-        
+
         -- setup the color values
         require("tokyonight").setup({
             style = "night",
@@ -38,5 +37,5 @@ return {
 
         -- Set colorscheme
         vim.cmd("colorscheme tokyonight")
-    end
+    end,
 }
