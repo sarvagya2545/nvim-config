@@ -1,13 +1,14 @@
 return {
-    'nvim-telescope/telescope.nvim', version = '*',
+    "nvim-telescope/telescope.nvim",
+    version = "*",
     dependencies = {
-        'nvim-lua/plenary.nvim',
-        { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
-        { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+        "nvim-lua/plenary.nvim",
+        { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+        { "nvim-tree/nvim-web-devicons", enabled = vim.g.have_nerd_font },
         "folke/todo-comments.nvim",
     },
-    config = function() 
-        local telescope = require('telescope')
+    config = function()
+        local telescope = require("telescope")
         local actions = require("telescope.actions")
 
         telescope.setup({
@@ -35,5 +36,5 @@ return {
         keymap.set("n", "<leader>fs", builtin.live_grep, { desc = "Find string in cwd" })
         keymap.set("n", "<leader>fc", builtin.grep_string, { desc = "Find string under cursor in cwd" })
         keymap.set("n", "<leader>ft", "<cmd>TodoTelescope<cr>", { desc = "Find todos" })
-    end
+    end,
 }
