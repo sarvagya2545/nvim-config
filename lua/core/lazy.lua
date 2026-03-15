@@ -16,7 +16,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- Setup plugins from plugins folder
-require("lazy").setup({ { import = "sarvagya.plugins" }, { import = "sarvagya.plugins.lsp" } }, {
+require("lazy").setup({ { import = "plugins" }, { import = "plugins.lsp" } }, {
     checker = {
         enabled = true,
         notify = false,
