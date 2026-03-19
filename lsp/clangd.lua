@@ -3,7 +3,7 @@ return {
         "clangd",
         "--background-index",
         "--clang-tidy",
-        "--completion-style=detailed"
+        "--completion-style=detailed",
     },
-    filetypes = { "cpp", "c" }
+    filetypes = { "cpp", "c" },
 }
