@@ -35,3 +35,7 @@ opt.splitright = true -- split vertical window to the right
 opt.splitbelow = true -- split horizontal window to the bottom
 
 opt.winborder = "rounded"
+
+-- related to project specific configurations
+opt.exrc = true
+opt.secure = true
