@@ -34,9 +34,9 @@ return {
         vim.api.nvim_create_autocmd({ "BufEnter", "BufAdd", "BufNew", "BufNewFile", "BufWinEnter" }, {
             group = vim.api.nvim_create_augroup("TS_FOLD_WORKAROUND", {}),
             callback = function()
-                vim.opt.foldmethod = "expr"
-                vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-                vim.opt.foldenable = false
+                vim.opt_local.foldmethod = "manual"
+                vim.opt_local.foldexpr = ""
+                vim.opt_local.foldenable = false
             end,
         })
     end,
