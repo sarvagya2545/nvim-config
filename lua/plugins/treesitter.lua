@@ -1,58 +1,43 @@
 return {
     "nvim-treesitter/nvim-treesitter",
-    event = { "BufReadPre", "BufNewFile" },
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
     dependencies = {
-        "windwp/nvim-ts-autotag",
+        -- "nvim-treesitter/nvim-treesitter-context",
     },
     config = function()
-        -- import nvim-treesitter plugin
-        local treesitter = require("nvim-treesitter.config")
+        -- Auto-install parsers and enable treesitter highlight/indent per filetype.
+        -- See: https://github.com/nvim-treesitter/nvim-treesitter/discussions/7927
+        vim.api.nvim_create_autocmd("FileType", {
+            pattern = { "*" },
+            callback = function(args)
+                local ft = vim.bo[args.buf].filetype
+                local lang = vim.treesitter.language.get_lang(ft)
+                if not vim.treesitter.language.add(lang) then
+                    local available = vim.g.ts_available or require("nvim-treesitter").get_available()
+                    if not vim.g.ts_available then
+                        vim.g.ts_available = available
+                    end
+                    if vim.tbl_contains(available, lang) then
+                        require("nvim-treesitter").install(lang)
+                    end
+                end
+                if vim.treesitter.language.add(lang) then
+                    vim.treesitter.start(args.buf, lang)
+                    vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+                end
+            end,
+        })
 
-        -- configure treesitter
-        treesitter.setup({ -- enable syntax highlighting
-            highlight = {
-                enable = true,
-            },
-            -- enable indentation
-            indent = { enable = true },
-            -- enable autotagging (w/ nvim-ts-autotag plugin)
-            autotag = {
-                enable = true,
-            },
-            -- ensure these language parsers are installed
-            ensure_installed = {
-                "json",
-                "javascript",
-                "typescript",
-                "tsx",
-                "yaml",
-                "html",
-                "css",
-                "prisma",
-                "markdown",
-                "markdown_inline",
-                "svelte",
-                "graphql",
-                "bash",
-                "lua",
-                "vim",
-                "dockerfile",
-                "gitignore",
-                "query",
-                "vimdoc",
-                "c",
-                "cpp",
-            },
-            incremental_selection = {
-                enable = true,
-                keymaps = {
-                    init_selection = "<C-space>",
-                    node_incremental = "<C-space>",
-                    scope_incremental = false,
-                    node_decremental = "<bs>",
-                },
-            },
+        -- Folding via treesitter.
+        vim.api.nvim_create_autocmd({ "BufEnter", "BufAdd", "BufNew", "BufNewFile", "BufWinEnter" }, {
+            group = vim.api.nvim_create_augroup("TS_FOLD_WORKAROUND", {}),
+            callback = function()
+                vim.opt.foldmethod = "expr"
+                vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+                vim.opt.foldenable = false
+            end,
         })
     end,
 }
