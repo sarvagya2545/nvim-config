@@ -31,6 +31,7 @@ return {
                 "clangd",
                 "ruff",
                 "ty",
+                "ts_ls",
             },
         })
 

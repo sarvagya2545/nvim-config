@@ -1,4 +1,4 @@
-vim.lsp.enable({ "lua_ls", "clangd", "ruff", "ty" })
+vim.lsp.enable({ "lua_ls", "clangd", "ruff", "ty", "ts_ls" })
 
 --  This function gets run when an LSP attaches to a particular buffer.
 --    That is to say, every time a new file is opened that is associated with
