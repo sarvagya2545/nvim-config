@@ -21,6 +21,10 @@ return {
                         ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist,
                     },
                 },
+            pickers = {
+                find_files = {
+                    find_command = { "rg", "--files", "--iglob", "!.git", "--hidden" },
+                },
             },
         })
 
