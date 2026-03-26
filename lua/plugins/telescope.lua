@@ -10,9 +10,10 @@ return {
     config = function()
         local telescope = require("telescope")
         local actions = require("telescope.actions")
+        local theme = require("telescope.themes").get_ivy
 
         telescope.setup({
-            defaults = {
+            defaults = theme({
                 path_display = { "smart" },
                 mappings = {
                     i = {
@@ -21,6 +22,7 @@ return {
                         ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist,
                     },
                 },
+            }),
             pickers = {
                 find_files = {
                     find_command = { "rg", "--files", "--iglob", "!.git", "--hidden" },
