@@ -1,6 +1,7 @@
 -- Sets the greeter for NVIM
 return {
     "goolord/alpha-nvim",
+    enabled = false,
     event = "VimEnter",
     config = function()
         local alpha = require("alpha")
