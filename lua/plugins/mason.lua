@@ -4,6 +4,7 @@ return {
     dependencies = {
         "williamboman/mason-lspconfig.nvim",
         "WhoIsSethDaniel/mason-tool-installer.nvim",
+        "neovim/nvim-lspconfig",
     },
     config = function()
         -- import mason
@@ -40,7 +41,7 @@ return {
             ensure_installed = {
                 -- Formatters
                 "prettier", -- prettier formatter
-                "stylua", -- lua formatter
+                "stylua",   -- lua formatter
                 -- "isort", -- python formatter
                 -- "black", -- python formatter
                 "clang-format", -- cpp formatter
