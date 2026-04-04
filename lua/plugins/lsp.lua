@@ -1,3 +1,4 @@
 return {
-    "neovim/nvim-lspconfig",
+    { "neovim/nvim-lspconfig" },
+    { "folke/lazydev.nvim",   opts = {} }
 }
