@@ -1,7 +1,7 @@
 return {
     {
         "nvim-mini/mini.statusline",
-        enabled = false,
+        enabled = true,
         version = "*",
         dependencies = {
             "lewis6991/gitsigns.nvim",
