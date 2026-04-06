@@ -39,3 +39,6 @@ opt.winborder = "bold"
 -- related to project specific configurations
 opt.exrc = true
 opt.secure = true
+
+-- disable swapfile
+opt.swapfile = false
