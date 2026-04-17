@@ -7,6 +7,7 @@ return {
         options = {
             mode = "tabs",
             separator_style = "thick",
+            always_show_bufferline = false,
         },
     },
 }
