@@ -10,7 +10,6 @@ return {
     {
         "sindrets/diffview.nvim",
         command = "DiffviewOpen",
-        -- cond = is_git_root,
         keys = {
             {
                 "<leader>gd",
@@ -33,6 +32,13 @@ return {
                 end,
                 desc = "Open diffs for current File",
             },
+            {
+                "<leader>gc",
+                function()
+                    vim.cmd("DiffviewClose")
+                end,
+                desc = "Close diff"
+            }
         }
     },
 }
