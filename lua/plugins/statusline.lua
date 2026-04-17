@@ -36,6 +36,7 @@ return {
                 content = {
                     active = function()
                         local mode, mode_hl = statusline.section_mode({ trunc_width = 120 })
+                        mode = mode:upper()
 
                         -- git branch
                         -- local branch = vim.fn.system("git branch --show-current 2>/dev/null"):gsub("%s+", "")
