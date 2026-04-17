@@ -11,6 +11,7 @@ return {
             -- when this plugin loads, i want to not show the mode
             vim.o.showmode = false
             local statusline = require("mini.statusline")
+            local lazy_status = require("lazy.status")
 
             local function get_branch()
                 local branch = vim.b.gitsigns_head
@@ -47,8 +48,9 @@ return {
                         local modified = vim.bo.modified and " ●" or ""
                         local file = filename ~= "" and (filename .. modified) or "[No Name]"
 
-                        -- diagnostics
+                        -- diagnostics and updates
                         local diag = statusline.section_diagnostics({ trunc_width = 75 })
+                        local lazy_updates = lazy_status.has_updates() and lazy_status.updates() or ""
 
                         -- right side
                         local encoding = vim.bo.fileencoding ~= "" and vim.bo.fileencoding or vim.o.encoding
@@ -62,6 +64,7 @@ return {
                             { hl = "MiniStatuslineFilename",   strings = { get_diff() } },
                             { hl = "MiniStatuslineDiagnostic", strings = { diag } },
                             "%=", -- right align everything after this
+                            lazy_updates ~= "" and { hl = "MiniStatuslineLazyUpdates", strings = { lazy_updates } } or "",
                             { hl = "MiniStatuslineEncoding", strings = { encoding } },
                             { hl = "MiniStatuslineFileinfo", strings = { filetype } },
                             { hl = mode_hl,                  strings = { location } },
@@ -92,7 +95,7 @@ return {
 
             -- Left side highlight groups
             hl(0, "MiniStatuslineFilename", { fg = colors.fg, bg = colors.bg })
-            hl(0, "MiniStatuslineBranch", { fg = colors.fg, bg = colors.bg })
+            hl(0, "MiniStatuslineBranch", { fg = colors.fg, bg = colors.inactive_bg })
             hl(0, "MiniStatuslineDiagnostic", { fg = colors.fg, bg = colors.bg })
 
             -- Git diff highlight groups
@@ -101,6 +104,7 @@ return {
             hl(0, "MiniStatuslineRemoved", { fg = colors.red, bg = colors.bg })
 
             -- Right side highlight groups
+            hl(0, "MiniStatuslineLazyUpdates", { fg = "#ff9e64", bg = colors.bg })
             hl(0, "MiniStatuslineEncoding", { fg = colors.fg, bg = colors.bg })
             hl(0, "MiniStatuslineFileinfo", { fg = colors.fg, bg = colors.inactive_bg })
             hl(0, "MiniStatuslineInactive", { fg = colors.fg, bg = colors.inactive_bg })
