@@ -1,5 +1,6 @@
 return {
     "williamboman/mason.nvim",
+    event = "VeryLazy",
     dependencies = {
         "williamboman/mason-lspconfig.nvim",
         "WhoIsSethDaniel/mason-tool-installer.nvim",
@@ -39,7 +40,7 @@ return {
             ensure_installed = {
                 -- Formatters
                 "prettier", -- prettier formatter
-                "stylua", -- lua formatter
+                "stylua",   -- lua formatter
                 -- "isort", -- python formatter
                 -- "black", -- python formatter
                 "clang-format", -- cpp formatter
