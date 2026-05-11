@@ -33,6 +33,7 @@ return {
                 "ruff",
                 "ty",
                 "ts_ls",
+                "jsonls",
             },
         })
 
@@ -40,7 +41,7 @@ return {
             ensure_installed = {
                 -- Formatters
                 "prettier", -- prettier formatter
-                "stylua",   -- lua formatter
+                "stylua", -- lua formatter
                 -- "isort", -- python formatter
                 -- "black", -- python formatter
                 "clang-format", -- cpp formatter
