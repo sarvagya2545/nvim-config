@@ -14,18 +14,22 @@ return {
             callback = function(args)
                 local ft = vim.bo[args.buf].filetype
                 local lang = vim.treesitter.language.get_lang(ft)
-                if not vim.treesitter.language.add(lang) then
-                    local available = vim.g.ts_available or require("nvim-treesitter").get_available()
-                    if not vim.g.ts_available then
-                        vim.g.ts_available = available
-                    end
-                    if vim.tbl_contains(available, lang) then
-                        require("nvim-treesitter").install(lang)
-                    end
+
+                if not lang then
+                    return
                 end
-                if vim.treesitter.language.add(lang) then
-                    vim.treesitter.start(args.buf, lang)
+
+                local ok = pcall(vim.treesitter.start, args.buf, lang)
+                if ok then
                     vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+                    return
+                end
+
+                local available = vim.g.ts_available or require("nvim-treesitter").get_available()
+                vim.g.ts_available = available
+
+                if vim.tbl_contains(available, lang) then
+                    require("nvim-treesitter").install(lang)
                 end
             end,
         })
