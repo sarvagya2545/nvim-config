@@ -1,47 +1,125 @@
 return {
-    "nvim-treesitter/nvim-treesitter",
-    branch = "main",
-    lazy = false,
-    build = ":TSUpdate",
-    dependencies = {
-        -- "nvim-treesitter/nvim-treesitter-context",
+    {
+        "nvim-treesitter/nvim-treesitter",
+        commit = "90cd658",
+        main = "nvim-treesitter",
+        -- build = ":TSUpdate",
+        event = { "BufReadPost", "BufNewFile" },
+        init = function()
+            local highlight = function(bufnr, lang)
+                -------------------[ treesitter highlights ]-------------------------------
+                if not vim.treesitter.language.add(lang) then
+                    return vim.notify(
+                        string.format("Treesitter cannot load parser for language: %s", lang),
+                        vim.log.levels.INFO,
+                        { title = "Treesitter" }
+                    )
+                end
+                vim.treesitter.start(bufnr)
+            end
+
+            vim.api.nvim_create_autocmd("FileType", {
+                callback = function(args)
+                    local ft = vim.bo.filetype
+                    local bt = vim.bo.buftype
+                    local buf = args.buf
+
+                    if bt ~= "" then
+                        return
+                    end -- don't run further.
+
+                    local ok, treesitter = pcall(require, "nvim-treesitter")
+                    if not ok then
+                        return
+                    end
+
+                    --------------------[ treesitter folds ]-------------------------------
+
+                    if ft == "javascriptreact" or ft == "typescriptreact" then
+                        vim.opt_local.foldmethod = "indent"
+                    else
+                        vim.opt_local.foldmethod = "expr"
+                        vim.opt_local.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+                    end
+
+                    vim.schedule(function()
+                        -- Only run normal if we're not in terminal mode
+                        if vim.fn.mode() ~= "t" then
+                            vim.cmd("silent! normal! zx")
+                        end
+                    end)
+
+                    ---------------------[ treesitter indent ]-------------------------------
+
+                    if not vim.tbl_contains({ "python", "html", "yaml", "markdown" }, ft) then
+                        vim.bo.indentexpr = "v:lua.require('nvim-treesitter').indentexpr()"
+                    end
+
+                    --------------------[ treesitter parsers ]-------------------------------
+                    if vim.fn.executable("tree-sitter") ~= 1 then
+                        vim.api.nvim_echo({
+                            {
+                                "tree-sitter CLI not found. Parsers cannot be installed.",
+                                "ErrorMsg",
+                            },
+                        }, true, {})
+                        return false
+                    end
+
+                    if not vim.treesitter.language.get_lang(ft) then
+                        return
+                    end
+
+                    if vim.list_contains(treesitter.get_installed(), ft) then
+                        highlight(buf, ft)
+                    elseif vim.list_contains(treesitter.get_available(), ft) then
+                        treesitter.install(ft):await(function()
+                            highlight(buf, ft)
+                        end)
+                    end
+                end,
+            })
+        end,
+        opts = {
+            install = {
+                "css",
+                "comment",
+                "markdown",
+                "markdown_inline",
+                "regex",
+                "vimdoc",
+            },
+        },
+        config = function(_, opts)
+            local treesitter = require("nvim-treesitter")
+            treesitter.setup(opts)
+            if vim.fn.executable("tree-sitter") ~= 1 then
+                vim.api.nvim_echo({
+                    {
+                        "tree-sitter CLI not found. Parsers cannot be installed.",
+                        "ErrorMsg",
+                    },
+                }, true, {})
+                return false
+            end
+            treesitter.install(opts.install)
+        end,
     },
-    config = function()
-        -- Auto-install parsers and enable treesitter highlight/indent per filetype.
-        -- See: https://github.com/nvim-treesitter/nvim-treesitter/discussions/7927
-        vim.api.nvim_create_autocmd("FileType", {
-            pattern = { "*" },
-            callback = function(args)
-                local ft = vim.bo[args.buf].filetype
-                local lang = vim.treesitter.language.get_lang(ft)
-
-                if not lang then
-                    return
-                end
-
-                local ok = pcall(vim.treesitter.start, args.buf, lang)
-                if ok then
-                    vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
-                    return
-                end
-
-                local available = vim.g.ts_available or require("nvim-treesitter").get_available()
-                vim.g.ts_available = available
-
-                if vim.tbl_contains(available, lang) then
-                    require("nvim-treesitter").install(lang)
-                end
-            end,
-        })
-
-        -- Folding via treesitter.
-        vim.api.nvim_create_autocmd({ "BufEnter", "BufAdd", "BufNew", "BufNewFile", "BufWinEnter" }, {
-            group = vim.api.nvim_create_augroup("TS_FOLD_WORKAROUND", {}),
-            callback = function()
-                vim.opt_local.foldmethod = "manual"
-                vim.opt_local.foldexpr = ""
-                vim.opt_local.foldenable = false
-            end,
-        })
-    end,
+    {
+        {
+            "MeanderingProgrammer/treesitter-modules.nvim",
+            dependencies = { "nvim-treesitter/nvim-treesitter" },
+            opts = {
+                incremental_selection = {
+                    enable = true,
+                    keymaps = {
+                        init_selection = "<A-o>",
+                        node_incremental = "<A-o>",
+                        scope_incremental = "<A-O>",
+                        node_decremental = "<A-i>",
+                    },
+                },
+            },
+        },
+    },
 }
