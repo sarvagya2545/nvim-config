@@ -41,7 +41,8 @@ return {
                         vim.opt_local.foldmethod = "expr"
                         vim.opt_local.foldexpr = "v:lua.vim.treesitter.foldexpr()"
                     end
-                    vim.opt_local.foldminlines = 100
+                    -- keep the folds open by default
+                    vim.opt.foldlevel = 99
 
                     vim.schedule(function()
                         -- Only run normal if we're not in terminal mode
