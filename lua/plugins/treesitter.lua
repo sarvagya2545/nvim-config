@@ -43,6 +43,7 @@ return {
                     end
                     -- keep the folds open by default
                     vim.opt.foldlevel = 99
+                    vim.opt.foldtext = ""
 
                     vim.schedule(function()
                         -- Only run normal if we're not in terminal mode
