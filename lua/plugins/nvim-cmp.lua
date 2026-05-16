@@ -13,6 +13,7 @@ return {
             build = "make install_jsregexp",
         },
         "saadparwaiz1/cmp_luasnip", -- for autocompletion
+        "kristijanhusak/vim-dadbod-completion", -- sql completion
         "rafamadriz/friendly-snippets", -- useful snippets
         "onsails/lspkind.nvim", -- vs-code like pictograms
     },
@@ -58,6 +59,14 @@ return {
                     maxwidth = 50,
                     ellipsis_char = "...",
                 }),
+            },
+        })
+
+        -- auto completions for sql files (vim dadbod)
+        cmp.setup.filetype({ "sql", "mysql" }, {
+            sources = {
+                { name = "vim-dadbod-completion" },
+                { name = "buffer" },
             },
         })
     end,
