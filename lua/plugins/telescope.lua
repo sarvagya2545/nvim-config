@@ -44,6 +44,9 @@ return {
         keymap.set("n", "<leader>fc", builtin.grep_string, { desc = "Find string under cursor in cwd" })
         keymap.set("n", "<leader>ft", "<cmd>TodoTelescope<cr>", { desc = "Find todos" })
 
+        -- git keymaps
+        keymap.set("n", "<leader>fb", builtin.git_branches, { desc = "Git checkout" })
+
         -- find files in config
         keymap.set("n", "<leader>en", function()
             builtin.find_files({
