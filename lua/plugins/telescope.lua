@@ -28,6 +28,11 @@ return {
                 find_files = {
                     find_command = { "rg", "--files", "--iglob", "!.git", "--hidden" },
                 },
+                git_branches = {
+                    mappings = {
+                        i = { ["<cr>"] = actions.git_switch_branch },
+                    },
+                },
             },
         })
 
