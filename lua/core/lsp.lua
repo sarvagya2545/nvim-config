@@ -1,4 +1,4 @@
-vim.lsp.enable({ "lua_ls", "clangd", "ruff", "ty", "ts_ls", "groovyls" })
+vim.lsp.enable({ "lua_ls", "clangd", "ruff", "ty", "ts_ls", "groovyls", "gopls" })
 
 vim.filetype.add({
     pattern = {
