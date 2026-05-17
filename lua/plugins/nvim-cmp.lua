@@ -68,6 +68,7 @@ return {
                 { name = "vim-dadbod-completion" },
                 { name = "buffer" },
             },
+            preselect = cmp.PreselectMode.None,
         })
     end,
 }

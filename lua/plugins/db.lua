@@ -12,4 +12,5 @@ return {
         cmd = { "DBUI", "DBUIToggle", "DBUIAddConnection" },
     },
     { "kristijanhusak/vim-dadbod-completion" },
+    { "joryeugene/dadbod-grip.nvim", version = "*" },
 }
