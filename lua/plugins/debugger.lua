@@ -2,11 +2,15 @@ return {
     {
         "mfussenegger/nvim-dap",
         dependencies = {
-            "leoluz/nvim-dap-go",
             "rcarriga/nvim-dap-ui",
             "theHamsta/nvim-dap-virtual-text",
             "nvim-neotest/nvim-nio",
             "williamboman/mason.nvim",
+            "nvim-tree/nvim-web-devicons",
+
+            -- language debuggers
+            "leoluz/nvim-dap-go",
+            "mfussenegger/nvim-dap-python",
         },
         config = function()
             local dap = require("dap")
@@ -14,7 +18,15 @@ return {
 
             require("dapui").setup()
             require("dap-go").setup()
+            require("dap-python").setup("~/.local/share/nvim/mason/packages/debugpy/venv/bin/python")
             require("nvim-dap-virtual-text").setup()
+
+            -- TODO: signs configuration
+            -- vim.fn.sign_define("DapBreakpoint", { text = " ", texthl = "", linehl = "", numhl = "" })
+            -- vim.fn.sign_define("DapBreakpointCondition", { text = "🛑", texthl = "", linehl = "", numhl = "" })
+            -- vim.fn.sign_define("DapLogPoint", { text = "🛑", texthl = "", linehl = "", numhl = "" })
+            -- vim.fn.sign_define("DapStopped", { text = " ", texthl = "", linehl = "", numhl = "" })
+            -- vim.fn.sign_define("DapBreakpointRejected", { text = "🛑", texthl = "", linehl = "", numhl = "" })
 
             local set_breakpoint_condition = function()
                 dap.set_breakpoint(vim.fn.input("Breakpoint condition: "))

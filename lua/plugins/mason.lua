@@ -49,6 +49,10 @@ return {
                 -- Linters
                 -- "pylint", -- python linter
                 "eslint_d", -- js linter
+
+                -- Debuggers
+                "delve",
+                "debugpy",
             },
         })
     end,
