@@ -24,11 +24,13 @@ return {
 
             local function get_diff()
                 local dict = vim.b.gitsigns_status_dict
-                if not dict then return "" end
+                if not dict then
+                    return ""
+                end
 
-                local added   = dict.added and dict.added > 0 and ("%#MiniStatuslineAdded#+") .. dict.added or ""
-                local changed = dict.changed and dict.changed > 0 and ("%#MiniStatuslineChanged#~") .. dict.changed or ""
-                local removed = dict.removed and dict.removed > 0 and ("%#MiniStatuslineRemoved#-") .. dict.removed or ""
+                local added = dict.added and dict.added > 0 and "%#MiniStatuslineAdded#+" .. dict.added or ""
+                local changed = dict.changed and dict.changed > 0 and "%#MiniStatuslineChanged#~" .. dict.changed or ""
+                local removed = dict.removed and dict.removed > 0 and "%#MiniStatuslineRemoved#-" .. dict.removed or ""
 
                 return table.concat({ added, changed, removed }, " "):gsub("^%s+", "")
             end
@@ -58,29 +60,30 @@ return {
                         local filetype = vim.bo.filetype
 
                         return statusline.combine_groups({
-                            { hl = mode_hl,                    strings = { mode } },
-                            { hl = "MiniStatuslineBranch",     strings = { git } },
-                            { hl = "MiniStatuslineFilename",   strings = { file } },
-                            { hl = "MiniStatuslineFilename",   strings = { get_diff() } },
+                            { hl = mode_hl, strings = { mode } },
+                            { hl = "MiniStatuslineBranch", strings = { git } },
+                            { hl = "MiniStatuslineFilename", strings = { file } },
+                            { hl = "MiniStatuslineFilename", strings = { get_diff() } },
                             { hl = "MiniStatuslineDiagnostic", strings = { diag } },
                             "%=", -- right align everything after this
-                            lazy_updates ~= "" and { hl = "MiniStatuslineLazyUpdates", strings = { lazy_updates } } or "",
+                            lazy_updates ~= "" and { hl = "MiniStatuslineLazyUpdates", strings = { lazy_updates } }
+                                or "",
                             { hl = "MiniStatuslineEncoding", strings = { encoding } },
                             { hl = "MiniStatuslineFileinfo", strings = { filetype } },
-                            { hl = mode_hl,                  strings = { location } },
+                            { hl = mode_hl, strings = { location } },
                         })
                     end,
                 },
             })
 
             local colors = {
-                blue        = "#65D1FF",
-                green       = "#3EFFDC",
-                violet      = "#FF61EF",
-                yellow      = "#FFDA7B",
-                red         = "#FF4A4A",
-                fg          = "#c3ccdc",
-                bg          = "#112638",
+                blue = "#65D1FF",
+                green = "#3EFFDC",
+                violet = "#FF61EF",
+                yellow = "#FFDA7B",
+                red = "#FF4A4A",
+                fg = "#c3ccdc",
+                bg = "#112638",
                 inactive_bg = "#2c3043",
             }
 
@@ -117,20 +120,20 @@ return {
             })
 
             vim.api.nvim_create_autocmd({
-                'WinEnter',
-                'BufEnter',
-                'BufWritePost',
-                'SessionLoadPost',
-                'FileChangedShellPost',
-                'VimResized',
-                'CursorMoved',
-                'CursorMovedI',
-                'ModeChanged',
+                "WinEnter",
+                "BufEnter",
+                "BufWritePost",
+                "SessionLoadPost",
+                "FileChangedShellPost",
+                "VimResized",
+                "CursorMoved",
+                "CursorMovedI",
+                "ModeChanged",
             }, {
                 callback = function()
                     vim.cmd("redrawstatus")
                 end,
             })
-        end
+        end,
     },
 }

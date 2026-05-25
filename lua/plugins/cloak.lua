@@ -1,3 +1,8 @@
 return {
-    "https://github.com/laytan/cloak.nvim",
+    {
+        "laytan/cloak.nvim",
+        config = function()
+            require("cloak").setup()
+        end,
+    },
 }

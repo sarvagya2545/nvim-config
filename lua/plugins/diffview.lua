@@ -37,8 +37,15 @@ return {
                 function()
                     vim.cmd("DiffviewClose")
                 end,
-                desc = "Close diff"
-            }
-        }
+                desc = "Close diff",
+            },
+        },
+        opts = {
+            view = {
+                merge_tool = {
+                    layout = "diff1_plain",
+                },
+            },
+        },
     },
 }

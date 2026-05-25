@@ -28,6 +28,11 @@ return {
                 find_files = {
                     find_command = { "rg", "--files", "--iglob", "!.git", "--hidden" },
                 },
+                git_branches = {
+                    mappings = {
+                        i = { ["<cr>"] = actions.git_switch_branch },
+                    },
+                },
             },
         })
 
@@ -44,11 +49,17 @@ return {
         keymap.set("n", "<leader>fc", builtin.grep_string, { desc = "Find string under cursor in cwd" })
         keymap.set("n", "<leader>ft", "<cmd>TodoTelescope<cr>", { desc = "Find todos" })
 
-        -- find files in config
-        keymap.set("n", "<leader>en", function()
-            builtin.find_files({
-                cwd = vim.fn.stdpath("config"),
+        -- git branch keymaps
+        keymap.set("n", "<leader>fb", function()
+            builtin.git_branches({
+                show_remote_tracking_branches = false,
             })
-        end)
+        end, { desc = "Git branch (local)" })
+
+        keymap.set("n", "<leader>fB", function()
+            builtin.git_branches({
+                show_remote_tracking_branches = true,
+            })
+        end, { desc = "Git branch (remote included)" })
     end,
 }

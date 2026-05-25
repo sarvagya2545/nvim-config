@@ -2,15 +2,11 @@ return {
     "williamboman/mason.nvim",
     event = "VeryLazy",
     dependencies = {
-        "williamboman/mason-lspconfig.nvim",
         "WhoIsSethDaniel/mason-tool-installer.nvim",
     },
     config = function()
         -- import mason
         local mason = require("mason")
-
-        -- import mason-lspconfig
-        local mason_lspconfig = require("mason-lspconfig")
         local mason_tool_installer = require("mason-tool-installer")
 
         -- enable mason and configure icons
@@ -24,32 +20,26 @@ return {
             },
         })
 
-        mason_lspconfig.setup({
-            -- list of servers for mason to install
-            ensure_installed = {
-                "lua_ls",
-                -- "pyright",
-                "clangd",
-                "ruff",
-                "ty",
-                "ts_ls",
-                "jsonls",
-            },
-        })
+        -- List of tools to install
+        local lsp_servers =
+            { "lua-language-server", "clangd", "ruff", "ty", "typescript-language-server", "groovy-language-server" }
+        local formatters = { "prettier", "stylua", "clang-format" }
+        local linters = { "eslint_d" }
+        local debuggers = { "debugpy" }
 
-        mason_tool_installer.setup({
-            ensure_installed = {
-                -- Formatters
-                "prettier", -- prettier formatter
-                "stylua", -- lua formatter
-                -- "isort", -- python formatter
-                -- "black", -- python formatter
-                "clang-format", -- cpp formatter
+        if vim.fn.executable("go") == 1 then
+            table.insert(debuggers, "delve")
+            table.insert(lsp_servers, "gopls")
+        end
 
-                -- Linters
-                -- "pylint", -- python linter
-                "eslint_d", -- js linter
-            },
-        })
+        -- merge the tools to be installed into single list
+        local ensure_installed = {}
+        vim.list_extend(ensure_installed, formatters)
+        vim.list_extend(ensure_installed, linters)
+        vim.list_extend(ensure_installed, debuggers)
+        vim.list_extend(ensure_installed, lsp_servers)
+
+        -- Mason tool installer
+        mason_tool_installer.setup({ ensure_installed = ensure_installed })
     end,
 }
