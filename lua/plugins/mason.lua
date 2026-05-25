@@ -21,8 +21,15 @@ return {
         })
 
         -- List of tools to install
-        local lsp_servers =
-            { "lua-language-server", "clangd", "ruff", "ty", "typescript-language-server", "groovy-language-server" }
+        local lsp_servers = {
+            "lua-language-server",
+            "clangd",
+            "ruff",
+            "ty",
+            "typescript-language-server",
+            "groovy-language-server",
+            "json-lsp",
+        }
         local formatters = { "prettier", "stylua", "clang-format" }
         local linters = { "eslint_d" }
         local debuggers = { "debugpy" }
