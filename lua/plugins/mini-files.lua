@@ -9,6 +9,11 @@ return {
     "nvim-mini/mini.files",
     enabled = true,
     opts = {
+        mappings = {
+            go_in_plus = "<Enter>",
+            go_out = "H",
+            go_out_plus = "h",
+        },
         windows = {
             preview = true,
             width_focus = 30,
@@ -18,6 +23,10 @@ return {
             -- Whether to use for editing directories
             -- Disabled by default in LazyVim because neo-tree is used for that
             use_as_default_explorer = false,
+            -- If set to false, files are moved to the trash directory
+            -- To get this dir run :echo stdpath('data')
+            -- ~/.local/share/nvim
+            permanent_delete = false,
         },
     },
     keys = {
