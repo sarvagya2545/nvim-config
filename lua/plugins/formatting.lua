@@ -7,6 +7,11 @@ return {
         -- variable to specify autoformat on global level
         vim.g.format_on_save = true
 
+        -- if during contest, then do not format on save unless it is enabled
+        if vim.env.NVIM_CONTEST_MODE then
+            vim.g.format_on_save = false
+        end
+
         conform.setup({
             formatters_by_ft = {
                 javascript = { "prettier" },
