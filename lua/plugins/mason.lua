@@ -29,6 +29,7 @@ return {
             "typescript-language-server",
             "groovy-language-server",
             "json-lsp",
+            "bash-language-server",
         }
         local formatters = { "prettier", "stylua", "clang-format" }
         local linters = { "eslint_d" }
