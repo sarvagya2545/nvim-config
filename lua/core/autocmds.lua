@@ -19,8 +19,8 @@ vim.api.nvim_create_autocmd("FileType", {
 
             vim.notify("Compiling...", vim.log.levels.INFO, { title = "Run" })
 
-            -- compile (async): g++-13 -std=c++2a code.cpp -o out
-            vim.system({ "g++-13", "-std=c++2a", src, "-o", bin }, { text = true }, function(compile)
+            -- compile (async): g++-13 -std=c++20 code.cpp -o out
+            vim.system({ "g++-13", "-std=c++20", src, "-o", bin }, { text = true }, function(compile)
                 if compile.code ~= 0 then
                     vim.schedule(function()
                         vim.notify(compile.stderr, vim.log.levels.ERROR, { title = "Compile failed" })
