@@ -1,5 +1,11 @@
 return {
-    { "tpope/vim-fugitive" },
+    {
+        "tpope/vim-fugitive",
+        config = function()
+            vim.keymap.set("n", "<leader>gg", "<cmd>Git<cr>", { desc = "Git status" })
+            vim.keymap.set("n", "<leader>gh", "<cmd>Git ", { desc = "Git command" })
+        end,
+    },
     { "tpope/vim-rhubarb" }, -- Use :GBrowse to open the file/repo in github
     {
         "lewis6991/gitsigns.nvim",
