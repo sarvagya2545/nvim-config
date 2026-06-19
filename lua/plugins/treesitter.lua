@@ -37,13 +37,16 @@ return {
 
                     if ft == "javascriptreact" or ft == "typescriptreact" then
                         vim.opt_local.foldmethod = "indent"
-                    else
+                        -- keep the folds open by default
+                        vim.opt.foldlevel = 99
+                        vim.opt.foldtext = ""
+                    elseif ft ~= "markdown" then
                         vim.opt_local.foldmethod = "expr"
                         vim.opt_local.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+                        -- keep the folds open by default
+                        vim.opt.foldlevel = 99
+                        vim.opt.foldtext = ""
                     end
-                    -- keep the folds open by default
-                    vim.opt.foldlevel = 99
-                    vim.opt.foldtext = ""
 
                     vim.schedule(function()
                         -- Only run normal if we're not in terminal mode
