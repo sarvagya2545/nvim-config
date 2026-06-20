@@ -136,7 +136,7 @@ return {
                 end)
             end
 
-            -- ---------- normal image buffer on K ----------
+            -- ---------- render an image opened directly in a buffer ----------
             local function buffer_show()
                 local buf = vim.api.nvim_get_current_buf()
                 local win = vim.api.nvim_get_current_win()
@@ -207,36 +207,8 @@ return {
                 end
             end
 
-            -- terminal cell pixel size; lets us size the float to the image's
-            -- true aspect ratio instead of a fixed box
-            local function cell_size()
-                local ok, term = pcall(function()
-                    return require("image.utils").term.get_size()
-                end)
-                if ok and term and (term.cell_width or 0) > 0 and (term.cell_height or 0) > 0 then
-                    return term.cell_width, term.cell_height
-                end
-                return 8, 16 -- sane fallback (matches image.nvim's own SSH fallback)
-            end
-
-            -- given image pixel dims, return the float's content size in cells that
-            -- preserves the image's aspect ratio and fits within max_w x max_h
-            -- (scaled down to fit, never upscaled past natural size)
-            local function fit_to_image(iw, ih, max_w, max_h)
-                if not iw or not ih or iw <= 0 or ih <= 0 then
-                    return max_w, max_h
-                end
-                local cw, ch = cell_size()
-                local nat_w = iw / cw -- natural width in cells
-                local nat_h = ih / ch -- natural height in cells
-                local scale = math.min(max_w / nat_w, max_h / nat_h, 1.0)
-                local w = math.max(1, math.floor(nat_w * scale + 0.5))
-                local h = math.max(1, math.floor(nat_h * scale + 0.5))
-                return w, h
-            end
-
             -- open a centered float at max size; closes on q / <esc>
-            local function open_float(max_w, max_h, title)
+            local function open_float(max_w, max_h, title, on_close)
                 clear_image()
                 local buf = vim.api.nvim_create_buf(false, true)
                 local win = vim.api.nvim_open_win(buf, true, {
@@ -255,18 +227,16 @@ return {
                     if vim.api.nvim_win_is_valid(win) then
                         vim.api.nvim_win_close(win, true)
                     end
+                    if on_close then
+                        on_close()
+                    end
                 end
                 vim.keymap.set("n", "<esc>", close, { buffer = buf, noremap = true, silent = true })
                 vim.keymap.set("n", "q", close, { buffer = buf, noremap = true, silent = true })
                 return win, buf
             end
 
-            -- shrink the float to hug `img`, then render it edge-to-edge
-            local function fit_and_render(win, img, max_w, max_h)
-                if not (img and vim.api.nvim_win_is_valid(win)) then
-                    return
-                end
-                local w, h = fit_to_image(img.image_width, img.image_height, max_w, max_h)
+            local function center_float(win, w, h)
                 vim.api.nvim_win_set_config(win, {
                     relative = "editor",
                     width = w,
@@ -274,12 +244,54 @@ return {
                     row = math.floor((vim.o.lines - h) / 2),
                     col = math.floor((vim.o.columns - w) / 2),
                 })
+            end
+
+            -- size the float to exactly what image.nvim will draw, then render, so
+            -- the border hugs the image instead of letterboxing it
+            local function fit_and_render(win, img, max_w, max_h)
+                if not (img and vim.api.nvim_win_is_valid(win)) then
+                    return
+                end
                 rendered = img
                 img.max_width_window_percentage = 100
                 img.max_height_window_percentage = 100
+
+                -- Ask image.nvim's own aspect-fit math (the same function it uses
+                -- internally) what cell size it would use inside the max box, so the
+                -- window matches the render exactly. Falls back to the max box.
+                local w, h = max_w, max_h
+                local iw, ih = img.image_width, img.image_height
+                local ok, utils = pcall(require, "image.utils")
+                if ok and utils and utils.math and utils.term and iw and ih and iw > 0 and ih > 0 then
+                    local ts = utils.term.get_size()
+                    if ts and (ts.cell_width or 0) > 0 and (ts.cell_height or 0) > 0 then
+                        local aw, ah = utils.math.adjust_to_aspect_ratio(ts, iw, ih, max_w, max_h)
+                        if aw and ah and aw > 0 and ah > 0 then
+                            w, h = math.min(aw, max_w), math.min(ah, max_h)
+                        end
+                    end
+                end
+
+                center_float(win, w, h)
                 pcall(function()
                     img:render({ x = 0, y = 0, width = w, height = h })
                 end)
+
+                -- Safety net: snap to the size image.nvim actually drew (handles any
+                -- rounding / clamping) so the border still hugs the image.
+                local rg = img.rendered_geometry
+                if
+                    rg
+                    and rg.width
+                    and rg.height
+                    and vim.api.nvim_win_is_valid(win)
+                    and (rg.width ~= w or rg.height ~= h)
+                then
+                    center_float(win, rg.width, rg.height)
+                    pcall(function()
+                        img:render({ x = 0, y = 0, width = rg.width, height = rg.height })
+                    end)
+                end
             end
 
             local function preview_markdown_image()
@@ -347,7 +359,7 @@ return {
                 end,
             })
 
-            -- ---------- (4): manual preview keymaps inside mini.files ----------
+            -- ---------- manual preview keymaps inside mini.files ----------
             -- These are buffer-local, so they only exist inside a mini.files window.
             -- They are registered on every mini.files buffer via MiniFilesBufferCreate.
             --   <space>i : preview the entry under the cursor with macOS Quick Look
@@ -379,7 +391,7 @@ return {
                         desc = "[P]Preview with macOS Quick Look",
                     })
 
-                    -- <M-i> : render the image under the cursor in a centered floating window
+                    -- <M-i> : preview the image under the cursor in a fitted float
                     vim.keymap.set("n", "<M-i>", function()
                         local entry = MiniFiles.get_fs_entry()
                         if not entry or entry.fs_type ~= "file" or not is_image(entry.path) then
@@ -392,36 +404,8 @@ return {
                         local focused_name = vim.fn.fnamemodify(entry.path, ":t")
                         local path = entry.path
 
-                        -- clear any image currently rendered so we don't draw twice
-                        clear_image()
-
-                        local width = math.floor(vim.o.columns * 0.6)
-                        local height = math.floor(vim.o.lines * 0.6)
-                        local col = math.floor((vim.o.columns - width) / 2)
-                        local row = math.floor((vim.o.lines - height) / 2)
-
-                        local buf = vim.api.nvim_create_buf(false, true)
-                        local win = vim.api.nvim_open_win(buf, true, {
-                            relative = "editor",
-                            row = row,
-                            col = col,
-                            width = width,
-                            height = height,
-                            style = "minimal",
-                            border = "rounded",
-                            title = " " .. focused_name .. " ",
-                            title_pos = "center",
-                        })
-
-                        -- reuse the shared render() helper -> sets `rendered`
-                        render(path, win, buf)
-
-                        local function close_and_restore()
-                            clear_image()
-                            if vim.api.nvim_win_is_valid(win) then
-                                vim.api.nvim_win_close(win, true)
-                            end
-                            -- reopen mini.files in the same dir and land on the same file
+                        -- on close, reopen mini.files here and land on the same file
+                        local function restore_minifiles()
                             MiniFiles.open(current_dir, true)
                             vim.defer_fn(function()
                                 local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
@@ -434,8 +418,18 @@ return {
                             end, 50)
                         end
 
-                        vim.keymap.set("n", "<esc>", close_and_restore, { buffer = buf, noremap = true, silent = true })
-                        vim.keymap.set("n", "q", close_and_restore, { buffer = buf, noremap = true, silent = true })
+                        local max_w = math.floor(vim.o.columns * 0.85)
+                        local max_h = math.floor(vim.o.lines * 0.85)
+                        local win, buf = open_float(max_w, max_h, focused_name, restore_minifiles)
+                        local ok, img = pcall(image.from_file, path, { window = win, buffer = buf })
+                        if ok and img then
+                            fit_and_render(win, img, max_w, max_h)
+                        else
+                            vim.notify("Failed to load image: " .. path, vim.log.levels.WARN)
+                            if vim.api.nvim_win_is_valid(win) then
+                                vim.api.nvim_win_close(win, true)
+                            end
+                        end
                     end, {
                         buffer = buf_id,
                         noremap = true,
