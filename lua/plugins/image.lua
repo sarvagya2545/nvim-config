@@ -141,6 +141,14 @@ return {
                 local buf = vim.api.nvim_get_current_buf()
                 local win = vim.api.nvim_get_current_win()
                 local path = vim.api.nvim_buf_get_name(buf)
+                -- Only act on real, on-disk files. Skip plugin/scratch buffers such
+                -- as mini.files previews, which are named `minifiles://.../foo.png`:
+                -- the tail matches the image autocmd pattern, but flipping
+                -- `modifiable` here leaves the buffer locked, and mini.files' own
+                -- refresh after a sync then fails to rewrite it (E5108).
+                if vim.bo[buf].buftype ~= "" or path:find("://", 1, true) then
+                    return
+                end
                 if not is_image(path) then
                     return
                 end
