@@ -136,7 +136,7 @@ return {
                 end)
             end
 
-            -- ---------- (2)+(3): normal image buffer on K ----------
+            -- ---------- normal image buffer on K ----------
             local function buffer_show()
                 local buf = vim.api.nvim_get_current_buf()
                 local win = vim.api.nvim_get_current_win()
@@ -164,7 +164,7 @@ return {
                 callback = clear_image,
             })
 
-            -- ---------- (3.5): markdown image preview on K ----------
+            -- ---------- markdown image preview on K ----------
             -- image.nvim has no native "render on keypress", so this is custom:
             -- in a markdown buffer, put the cursor on an image link `![alt](path)`
             -- and press K to preview that image in a centered floating window.
@@ -199,20 +199,44 @@ return {
                 end
             end
 
-            -- open a centered float and return its win/buf so a renderer can fill it
-            local function open_preview_float(title)
+            -- terminal cell pixel size; lets us size the float to the image's
+            -- true aspect ratio instead of a fixed box
+            local function cell_size()
+                local ok, term = pcall(function()
+                    return require("image.utils").term.get_size()
+                end)
+                if ok and term and (term.cell_width or 0) > 0 and (term.cell_height or 0) > 0 then
+                    return term.cell_width, term.cell_height
+                end
+                return 8, 16 -- sane fallback (matches image.nvim's own SSH fallback)
+            end
+
+            -- given image pixel dims, return the float's content size in cells that
+            -- preserves the image's aspect ratio and fits within max_w x max_h
+            -- (scaled down to fit, never upscaled past natural size)
+            local function fit_to_image(iw, ih, max_w, max_h)
+                if not iw or not ih or iw <= 0 or ih <= 0 then
+                    return max_w, max_h
+                end
+                local cw, ch = cell_size()
+                local nat_w = iw / cw -- natural width in cells
+                local nat_h = ih / ch -- natural height in cells
+                local scale = math.min(max_w / nat_w, max_h / nat_h, 1.0)
+                local w = math.max(1, math.floor(nat_w * scale + 0.5))
+                local h = math.max(1, math.floor(nat_h * scale + 0.5))
+                return w, h
+            end
+
+            -- open a centered float at max size; closes on q / <esc>
+            local function open_float(max_w, max_h, title)
                 clear_image()
-                local width = math.floor(vim.o.columns * 0.6)
-                local height = math.floor(vim.o.lines * 0.6)
-                local col = math.floor((vim.o.columns - width) / 2)
-                local row = math.floor((vim.o.lines - height) / 2)
                 local buf = vim.api.nvim_create_buf(false, true)
                 local win = vim.api.nvim_open_win(buf, true, {
                     relative = "editor",
-                    row = row,
-                    col = col,
-                    width = width,
-                    height = height,
+                    width = max_w,
+                    height = max_h,
+                    row = math.floor((vim.o.lines - max_h) / 2),
+                    col = math.floor((vim.o.columns - max_w) / 2),
                     style = "minimal",
                     border = "rounded",
                     title = title and (" " .. title .. " ") or nil,
@@ -229,6 +253,27 @@ return {
                 return win, buf
             end
 
+            -- shrink the float to hug `img`, then render it edge-to-edge
+            local function fit_and_render(win, img, max_w, max_h)
+                if not (img and vim.api.nvim_win_is_valid(win)) then
+                    return
+                end
+                local w, h = fit_to_image(img.image_width, img.image_height, max_w, max_h)
+                vim.api.nvim_win_set_config(win, {
+                    relative = "editor",
+                    width = w,
+                    height = h,
+                    row = math.floor((vim.o.lines - h) / 2),
+                    col = math.floor((vim.o.columns - w) / 2),
+                })
+                rendered = img
+                img.max_width_window_percentage = 100
+                img.max_height_window_percentage = 100
+                pcall(function()
+                    img:render({ x = 0, y = 0, width = w, height = h })
+                end)
+            end
+
             local function preview_markdown_image()
                 local raw = md_image_under_cursor()
                 if not raw then
@@ -241,20 +286,15 @@ return {
                     return
                 end
 
-                -- remote image -> stream it into the float with from_url
+                -- generous max box; the float is then shrunk to the image aspect
+                local max_w = math.floor(vim.o.columns * 0.85)
+                local max_h = math.floor(vim.o.lines * 0.85)
+
+                -- remote image -> stream it in with from_url, size in the callback
                 if raw:match("^https?://") then
-                    local win, buf = open_preview_float(raw:match("[^/]+$"))
-                    local w = vim.api.nvim_win_get_width(win)
-                    local h = vim.api.nvim_win_get_height(win)
+                    local win, buf = open_float(max_w, max_h, raw:match("[^/]+$"))
                     pcall(image.from_url, raw, { window = win, buffer = buf }, function(img)
-                        if img then
-                            rendered = img
-                            img.max_width_window_percentage = 100
-                            img.max_height_window_percentage = 100
-                            pcall(function()
-                                img:render({ x = 0, y = 0, width = w, height = h })
-                            end)
-                        end
+                        fit_and_render(win, img, max_w, max_h)
                     end)
                     return
                 end
@@ -275,8 +315,16 @@ return {
                     return
                 end
 
-                local win, buf = open_preview_float(vim.fn.fnamemodify(path, ":t"))
-                render(path, win, buf) -- shared helper; sets `rendered`
+                local win, buf = open_float(max_w, max_h, vim.fn.fnamemodify(path, ":t"))
+                local ok, img = pcall(image.from_file, path, { window = win, buffer = buf })
+                if ok and img then
+                    fit_and_render(win, img, max_w, max_h)
+                else
+                    vim.notify("Failed to load image: " .. path, vim.log.levels.WARN)
+                    if vim.api.nvim_win_is_valid(win) then
+                        vim.api.nvim_win_close(win, true)
+                    end
+                end
             end
 
             vim.api.nvim_create_autocmd("FileType", {
