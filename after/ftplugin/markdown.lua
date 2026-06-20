@@ -250,7 +250,7 @@ local function header_jumps()
     -- This will only search for H2 headings and above
     -- hardtime.nvim causes issues with this key, you have to unrestrict it in the
     -- plugin config
-    vim.keymap.set({ "n", "v" }, "gk", function()
+    vim.keymap.set({ "n", "v" }, "[h", function()
         -- `?` - Start a search backwards from the current cursor position.
         -- `^` - Match the beginning of a line.
         -- `##` - Match 2 ## symbols
@@ -276,7 +276,7 @@ local function header_jumps()
     -- This will only search for H2 headings and above
     -- hardtime.nvim causes issues with this key, you have to unrestrict it in the
     -- plugin config
-    vim.keymap.set({ "n", "v" }, "gj", function()
+    vim.keymap.set({ "n", "v" }, "]h", function()
         -- `/` - Start a search forwards from the current cursor position.
         -- `^` - Match the beginning of a line.
         -- `##` - Match 2 ## symbols

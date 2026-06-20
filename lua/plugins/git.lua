@@ -18,8 +18,10 @@ return {
                 end
 
                 -- Navigation
-                map("n", "]h", gs.next_hunk, "Next Hunk")
-                map("n", "[h", gs.prev_hunk, "Prev Hunk")
+                -- changed from "]h" -> "]c"
+                -- (because this is the same as codediff.nvim or diffview.nvim)
+                map("n", "]c", gs.next_hunk, "Next Hunk")
+                map("n", "[c", gs.prev_hunk, "Prev Hunk")
 
                 -- Actions
                 map("n", "<leader>hs", gs.stage_hunk, "Stage hunk")
