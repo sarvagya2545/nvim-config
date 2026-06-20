@@ -54,7 +54,11 @@ return {
             integrations = {
                 -- Notice these are the settings for markdown files
                 markdown = {
-                    enabled = true,
+                    -- Auto-rendering is turned OFF on purpose: image.nvim has no
+                    -- native "render on keypress", so instead of letting images pop
+                    -- automatically at the cursor, we preview them on demand with `K`
+                    -- (see the FileType markdown keymap in the config function below).
+                    enabled = false,
                     clear_in_insert_mode = false,
                     -- Set this to false if you don't want to render images coming from
                     -- a URL
@@ -158,6 +162,133 @@ return {
             vim.api.nvim_create_autocmd({ "BufLeave", "WinClosed" }, {
                 pattern = img_glob,
                 callback = clear_image,
+            })
+
+            -- ---------- (3.5): markdown image preview on K ----------
+            -- image.nvim has no native "render on keypress", so this is custom:
+            -- in a markdown buffer, put the cursor on an image link `![alt](path)`
+            -- and press K to preview that image in a centered floating window.
+            -- Auto-rendering is disabled (integrations.markdown.enabled = false), so
+            -- images only ever show on demand.
+
+            -- decode %XX escapes (img-clip can url-encode paths)
+            local function url_decode(str)
+                return (
+                    str:gsub("%%(%x%x)", function(h)
+                        return string.char(tonumber(h, 16))
+                    end)
+                )
+            end
+
+            -- return the image path from the `![...](path)` link under the cursor, or nil
+            local function md_image_under_cursor()
+                local line = vim.api.nvim_get_current_line()
+                local col = vim.api.nvim_win_get_cursor(0)[2] + 1 -- 1-indexed
+                local from = 1
+                while true do
+                    local s, e, path = line:find("!%[[^%]]*%]%(([^)]+)%)", from)
+                    if not s then
+                        return nil
+                    end
+                    if col >= s and col <= e then
+                        -- drop an optional `  "title"` suffix, then trim
+                        path = path:gsub("%s+[\"'].*$", "")
+                        return vim.trim(path)
+                    end
+                    from = e + 1
+                end
+            end
+
+            -- open a centered float and return its win/buf so a renderer can fill it
+            local function open_preview_float(title)
+                clear_image()
+                local width = math.floor(vim.o.columns * 0.6)
+                local height = math.floor(vim.o.lines * 0.6)
+                local col = math.floor((vim.o.columns - width) / 2)
+                local row = math.floor((vim.o.lines - height) / 2)
+                local buf = vim.api.nvim_create_buf(false, true)
+                local win = vim.api.nvim_open_win(buf, true, {
+                    relative = "editor",
+                    row = row,
+                    col = col,
+                    width = width,
+                    height = height,
+                    style = "minimal",
+                    border = "rounded",
+                    title = title and (" " .. title .. " ") or nil,
+                    title_pos = title and "center" or nil,
+                })
+                local function close()
+                    clear_image()
+                    if vim.api.nvim_win_is_valid(win) then
+                        vim.api.nvim_win_close(win, true)
+                    end
+                end
+                vim.keymap.set("n", "<esc>", close, { buffer = buf, noremap = true, silent = true })
+                vim.keymap.set("n", "q", close, { buffer = buf, noremap = true, silent = true })
+                return win, buf
+            end
+
+            local function preview_markdown_image()
+                local raw = md_image_under_cursor()
+                if not raw then
+                    -- not on an image link -> fall back to the usual K behavior
+                    if #vim.lsp.get_clients({ bufnr = 0 }) > 0 then
+                        pcall(vim.lsp.buf.hover)
+                    else
+                        pcall(vim.cmd, "normal! K")
+                    end
+                    return
+                end
+
+                -- remote image -> stream it into the float with from_url
+                if raw:match("^https?://") then
+                    local win, buf = open_preview_float(raw:match("[^/]+$"))
+                    local w = vim.api.nvim_win_get_width(win)
+                    local h = vim.api.nvim_win_get_height(win)
+                    pcall(image.from_url, raw, { window = win, buffer = buf }, function(img)
+                        if img then
+                            rendered = img
+                            img.max_width_window_percentage = 100
+                            img.max_height_window_percentage = 100
+                            pcall(function()
+                                img:render({ x = 0, y = 0, width = w, height = h })
+                            end)
+                        end
+                    end)
+                    return
+                end
+
+                -- local image -> resolve relative to the markdown file's directory
+                local path = url_decode(raw)
+                if path:sub(1, 1) ~= "/" and path:sub(1, 1) ~= "~" then
+                    path = vim.fn.expand("%:p:h") .. "/" .. path
+                end
+                path = vim.fn.fnamemodify(vim.fn.expand(path), ":p")
+
+                if vim.fn.filereadable(path) == 0 then
+                    vim.notify("Image not found: " .. path, vim.log.levels.WARN)
+                    return
+                end
+                if not is_image(path) then
+                    vim.notify("Not a supported image: " .. path, vim.log.levels.WARN)
+                    return
+                end
+
+                local win, buf = open_preview_float(vim.fn.fnamemodify(path, ":t"))
+                render(path, win, buf) -- shared helper; sets `rendered`
+            end
+
+            vim.api.nvim_create_autocmd("FileType", {
+                pattern = { "markdown", "quarto", "vimwiki" },
+                callback = function(args)
+                    vim.keymap.set("n", "K", preview_markdown_image, {
+                        buffer = args.buf,
+                        noremap = true,
+                        silent = true,
+                        desc = "Preview image link under cursor",
+                    })
+                end,
             })
 
             -- ---------- (4): manual preview keymaps inside mini.files ----------
