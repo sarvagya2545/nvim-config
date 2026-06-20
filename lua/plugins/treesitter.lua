@@ -1,3 +1,5 @@
+local utils = require("utils.utils")
+
 return {
     {
         "nvim-treesitter/nvim-treesitter",
@@ -35,14 +37,22 @@ return {
 
                     --------------------[ treesitter folds ]-------------------------------
 
-                    if ft == "javascriptreact" or ft == "typescriptreact" then
+                    local foldmethod_set = false
+                    local indent_fold_ft_list = { "javascriptreact", "typescriptreact" } -- use indent folds for these
+                    local ignore_fold_ft_list = { "markdown" } -- do not set foldexpr for these (handled separately with ftplugin)
+
+                    if utils.findInList(indent_fold_ft_list, ft) then
+                        -- set indent folds
                         vim.opt_local.foldmethod = "indent"
-                        -- keep the folds open by default
-                        vim.opt.foldlevel = 99
-                        vim.opt.foldtext = ""
-                    elseif ft ~= "markdown" then
+                        foldmethod_set = true
+                    elseif not utils.findInList(ignore_fold_ft_list, ft) then
+                        -- use treesitter foldexpr
                         vim.opt_local.foldmethod = "expr"
                         vim.opt_local.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+                        foldmethod_set = true
+                    end
+
+                    if foldmethod_set then
                         -- keep the folds open by default
                         vim.opt.foldlevel = 99
                         vim.opt.foldtext = ""
