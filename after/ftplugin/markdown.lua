@@ -201,12 +201,49 @@ local function todo_items()
         -- "- [ ] " is 6 characters
         vim.api.nvim_win_set_cursor(0, { row, 6 })
     end, { desc = "Convert bullet to a task or insert new task bullet" })
+
+    -- Iterate through incomplete tasks in telescope
+    -- You can confirm in your teminal lamw25wmal with:
+    -- rg "^\s*-\s\[ \]" test-markdown.md
+    vim.keymap.set("n", "<leader>tt", function()
+        require("telescope.builtin").grep_string(require("telescope.themes").get_ivy({
+            prompt_title = "Incomplete Tasks",
+            -- search = "- \\[ \\]", -- Fixed search term for tasks
+            -- search = "^- \\[ \\]", -- Ensure "- [ ]" is at the beginning of the line
+            search = "^\\s*- \\[ \\]", -- also match blank spaces at the beginning
+            search_dirs = { vim.fn.getcwd() }, -- Restrict search to the current working directory
+            use_regex = true, -- Enable regex for the search term
+            initial_mode = "insert",
+            layout_config = {
+                preview_width = 0.5, -- Adjust preview width
+            },
+            additional_args = function()
+                return { "--no-ignore" } -- Include files ignored by .gitignore
+            end,
+        }))
+    end, { desc = "[P]Search for incomplete tasks" })
+
+    -- Iterate through completed tasks in telescope lamw25wmal
+    vim.keymap.set("n", "<leader>tc", function()
+        require("telescope.builtin").grep_string(require("telescope.themes").get_ivy({
+            prompt_title = "Completed Tasks",
+            -- search = [[- \[x\] `done:]], -- Regex to match the text "`- [x] `done:"
+            -- search = "^- \\[x\\] `done:", -- Matches lines starting with "- [x] `done:"
+            search = "^\\s*- \\[x\\] `done:", -- also match blank spaces at the beginning
+            search_dirs = { vim.fn.getcwd() }, -- Restrict search to the current working directory
+            use_regex = true, -- Enable regex for the search term
+            initial_mode = "normal", -- Start in normal mode
+            layout_config = {
+                preview_width = 0.5, -- Adjust preview width
+            },
+            additional_args = function()
+                return { "--no-ignore" } -- Include files ignored by .gitignore
+            end,
+        }))
+    end, { desc = "[P]Search for completed tasks" })
 end
 
 local function header_jumps()
-    -- HACK: Jump between markdown headings in lazyvim
-    -- https://youtu.be/9S7Zli9hzTE
-    --
     -- Search UP for a markdown header
     -- Make sure to follow proper markdown convention, and you have a single H1
     -- heading at the very top of the file
@@ -233,9 +270,6 @@ local function header_jumps()
         vim.cmd("nohlsearch")
     end, { desc = "[P]Go to previous markdown header" })
 
-    -- HACK: Jump between markdown headings in lazyvim
-    -- https://youtu.be/9S7Zli9hzTE
-    --
     -- Search DOWN for a markdown header
     -- Make sure to follow proper markdown convention, and you have a single H1
     -- heading at the very top of the file
