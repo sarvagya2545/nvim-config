@@ -72,20 +72,6 @@ vim.api.nvim_create_autocmd("FileType", {
             if heading then
                 local level = #heading
                 return ">" .. level
-                -- if level == 1 then
-                --     -- Special handling for H1
-                --     if lnum == 1 then
-                --         return ">1"
-                --     else
-                --         local frontmatter_end = vim.b.frontmatter_end
-                --         if frontmatter_end and (lnum >= frontmatter_end + 1) then
-                --             return ">1"
-                --         end
-                --     end
-                -- elseif level >= 2 and level <= 6 then
-                --     -- Regular handling for H2-H6
-                --     return ">" .. level
-                -- end
             end
             return "="
         end
@@ -190,20 +176,20 @@ vim.api.nvim_create_autocmd("FileType", {
             vim.cmd("normal! zz") -- center the cursor line on screen
         end, { desc = "[P]Fold all headings level 4 or above" })
 
-        -- Use <CR> to fold when in normal mode
-        -- To see help about folds use `:help fold`
-        vim.keymap.set("n", "<CR>", function()
-            -- Get the current line number
-            local line = vim.fn.line(".")
-            -- Get the fold level of the current line
-            local foldlevel = vim.fn.foldlevel(line)
-            if foldlevel == 0 then
-                vim.notify("No fold found", vim.log.levels.INFO)
-            else
-                vim.cmd("normal! za")
-                vim.cmd("normal! zz") -- center the cursor line on screen
-            end
-        end, { desc = "[P]Toggle fold" })
+        -- -- Use <CR> to fold when in normal mode
+        -- -- To see help about folds use `:help fold`
+        -- vim.keymap.set("n", "<CR>", function()
+        --     -- Get the current line number
+        --     local line = vim.fn.line(".")
+        --     -- Get the fold level of the current line
+        --     local foldlevel = vim.fn.foldlevel(line)
+        --     if foldlevel == 0 then
+        --         vim.notify("No fold found", vim.log.levels.INFO)
+        --     else
+        --         vim.cmd("normal! za")
+        --         vim.cmd("normal! zz") -- center the cursor line on screen
+        --     end
+        -- end, { desc = "[P]Toggle fold" })
 
         -- Keymap for unfolding markdown headings of level 2 or above
         -- Changed all the markdown folding and unfolding keymaps from <leader>mfj to
