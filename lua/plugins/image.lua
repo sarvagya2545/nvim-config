@@ -132,119 +132,6 @@ return {
                 end)
             end
 
-            -- ---------- (1)+(2): mini.files preview ----------
-
-            local last_preview_path = nil
-            local function minifiles_auto_preview()
-                local ok, MiniFiles = pcall(require, "mini.files")
-                if not ok then
-                    return
-                end
-
-                local state = MiniFiles.get_explorer_state()
-                if not state then
-                    return
-                end
-
-                -- the window the cursor is actually in (the focused directory window),
-                -- NOT whatever buffer the event happened to hand us
-                local cur_win = vim.api.nvim_get_current_win()
-
-                -- confirm it's one of mini.files' own windows; bail if focus is elsewhere
-                local is_minifiles_win = false
-                for _, w in ipairs(state.windows) do
-                    if w.win_id == cur_win then
-                        is_minifiles_win = true
-                        break
-                    end
-                end
-                if not is_minifiles_win then
-                    return
-                end
-
-                local cur_buf = vim.api.nvim_win_get_buf(cur_win)
-
-                -- get_fs_entry reads the cursor line of this buffer; pcall guards against
-                -- non-entry lines (blank/.. rows) and the case where focus is on the
-                -- preview window (a file buffer, not a directory buffer)
-                local ok_entry, entry = pcall(MiniFiles.get_fs_entry, cur_buf)
-                if not ok_entry then
-                    return
-                end
-
-                if not entry or entry.fs_type ~= "file" or not is_image(entry.path) then
-                    if last_preview_path ~= nil then
-                        clear_image()
-                        last_preview_path = nil
-                    end
-                    return
-                end
-
-                -- already showing this exact image -> do nothing (event is very frequent)
-                if entry.path == last_preview_path then
-                    return
-                end
-
-                -- find mini.files' own preview window for this path
-                local prev_win
-                for _, w in ipairs(state.windows) do
-                    if w.path == entry.path then
-                        prev_win = w.win_id
-                        break
-                    end
-                end
-                if not prev_win then
-                    return
-                end -- needs windows.preview = true
-
-                local prev_buf = vim.api.nvim_win_get_buf(prev_win)
-                -- wipe the binary bytes mini.files dumped into the preview buffer
-                vim.bo[prev_buf].modifiable = true
-                vim.api.nvim_buf_set_lines(prev_buf, 0, -1, false, {})
-                vim.bo[prev_buf].modifiable = false
-
-                local path = entry.path
-                vim.schedule(function()
-                    -- re-derive the preview window live; it may have been resized/replaced
-                    local st = MiniFiles.get_explorer_state()
-                    if not st then
-                        return
-                    end
-                    local pw
-                    for _, w in ipairs(st.windows) do
-                        if w.path == path then
-                            pw = w.win_id
-                            break
-                        end
-                    end
-                    if not pw or not vim.api.nvim_win_is_valid(pw) then
-                        return
-                    end
-                    local pb = vim.api.nvim_win_get_buf(pw)
-                    vim.bo[pb].modifiable = true
-                    vim.api.nvim_buf_set_lines(pb, 0, -1, false, {})
-                    vim.bo[pb].modifiable = false
-                    render(path, pw, pb)
-                    last_preview_path = path
-                end)
-            end
-
-            -- moving to another entry / closing clears it, so it only shows on K
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "MiniFilesExplorerClose",
-                callback = function()
-                    clear_image()
-                    last_preview_path = nil
-                end,
-            })
-
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "MiniFilesWindowUpdate",
-                callback = function()
-                    minifiles_auto_preview()
-                end,
-            })
-
             -- ---------- (2)+(3): normal image buffer on K ----------
             local function buffer_show()
                 local buf = vim.api.nvim_get_current_buf()
@@ -271,6 +158,104 @@ return {
             vim.api.nvim_create_autocmd({ "BufLeave", "WinClosed" }, {
                 pattern = img_glob,
                 callback = clear_image,
+            })
+
+            -- ---------- (4): manual preview keymaps inside mini.files ----------
+            -- These are buffer-local, so they only exist inside a mini.files window.
+            -- They are registered on every mini.files buffer via MiniFilesBufferCreate.
+            --   <space>i : preview the entry under the cursor with macOS Quick Look
+            --   <M-i>    : preview the image under the cursor in a centered floating window
+            -- Quick Look idea credit: video https://youtu.be/BzblG2eV8dU
+            vim.api.nvim_create_autocmd("User", {
+                pattern = "MiniFilesBufferCreate",
+                callback = function(args)
+                    local buf_id = args.data.buf_id
+                    local MiniFiles = require("mini.files")
+
+                    -- <space>i : macOS Quick Look (handles images, PDFs, video, etc.)
+                    vim.keymap.set("n", "<space>i", function()
+                        local entry = MiniFiles.get_fs_entry()
+                        if not entry then
+                            vim.notify("No file selected", vim.log.levels.WARN)
+                            return
+                        end
+                        -- Open the file in Quick Look (stdout/stderr silenced; qlmanage is noisy)
+                        vim.system({ "qlmanage", "-p", entry.path }, { stdout = false, stderr = false })
+                        -- qlmanage opens in the background, so bring it to the front
+                        vim.defer_fn(function()
+                            vim.system({ "osascript", "-e", 'tell application "qlmanage" to activate' })
+                        end, 200)
+                    end, {
+                        buffer = buf_id,
+                        noremap = true,
+                        silent = true,
+                        desc = "[P]Preview with macOS Quick Look",
+                    })
+
+                    -- <M-i> : render the image under the cursor in a centered floating window
+                    vim.keymap.set("n", "<M-i>", function()
+                        local entry = MiniFiles.get_fs_entry()
+                        if not entry or entry.fs_type ~= "file" or not is_image(entry.path) then
+                            vim.notify("Not an image file", vim.log.levels.WARN)
+                            return
+                        end
+
+                        -- remember where we are so we can restore mini.files afterwards
+                        local current_dir = vim.fn.fnamemodify(entry.path, ":h")
+                        local focused_name = vim.fn.fnamemodify(entry.path, ":t")
+                        local path = entry.path
+
+                        -- clear any image currently rendered so we don't draw twice
+                        clear_image()
+
+                        local width = math.floor(vim.o.columns * 0.6)
+                        local height = math.floor(vim.o.lines * 0.6)
+                        local col = math.floor((vim.o.columns - width) / 2)
+                        local row = math.floor((vim.o.lines - height) / 2)
+
+                        local buf = vim.api.nvim_create_buf(false, true)
+                        local win = vim.api.nvim_open_win(buf, true, {
+                            relative = "editor",
+                            row = row,
+                            col = col,
+                            width = width,
+                            height = height,
+                            style = "minimal",
+                            border = "rounded",
+                            title = " " .. focused_name .. " ",
+                            title_pos = "center",
+                        })
+
+                        -- reuse the shared render() helper -> sets `rendered`
+                        render(path, win, buf)
+
+                        local function close_and_restore()
+                            clear_image()
+                            if vim.api.nvim_win_is_valid(win) then
+                                vim.api.nvim_win_close(win, true)
+                            end
+                            -- reopen mini.files in the same dir and land on the same file
+                            MiniFiles.open(current_dir, true)
+                            vim.defer_fn(function()
+                                local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+                                for i, line in ipairs(lines) do
+                                    if line:find(focused_name, 1, true) then
+                                        pcall(vim.api.nvim_win_set_cursor, 0, { i, 0 })
+                                        break
+                                    end
+                                end
+                            end, 50)
+                        end
+
+                        vim.keymap.set("n", "<esc>", close_and_restore, { buffer = buf, noremap = true, silent = true })
+                        vim.keymap.set("n", "q", close_and_restore, { buffer = buf, noremap = true, silent = true })
+                    end, {
+                        buffer = buf_id,
+                        noremap = true,
+                        silent = true,
+                        desc = "[P]Preview image in popup",
+                    })
+                end,
             })
         end,
     },
@@ -384,16 +369,6 @@ return {
         keys = {
             -- suggested keymap
             { "<leader>v", "<cmd>PasteImage<cr>", desc = "Paste image from system clipboard" },
-        },
-    },
-    {
-        "hmdfrds/focal.nvim",
-        event = "VeryLazy",
-        dependencies = {
-            "3rd/image.nvim", -- optional if using chafa backend
-        },
-        opts = {
-            -- See Configuration below
         },
     },
 }
