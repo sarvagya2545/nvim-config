@@ -7,12 +7,8 @@ testfunc()
 
 return {
     "saghen/blink.cmp",
-
-    -- Pin to the stable v1 line. This downloads a prebuilt Rust fuzzy-matcher
-    -- binary that matches the tagged release, so you don't need cargo installed.
     version = "1.*",
 
-    -- Optional but recommended dependencies:
     dependencies = {
         "rafamadriz/friendly-snippets", -- community snippets for the `snippets` source
         -- 'L3MON4D3/LuaSnip',          -- uncomment if you want LuaSnip instead of vim.snippet
@@ -32,9 +28,6 @@ return {
             ["<C-j>"] = { "select_next", "fallback" },
             ["<C-u>"] = { "scroll_documentation_up", "fallback" },
             ["<C-d>"] = { "scroll_documentation_down", "fallback" },
-            -- Override individual keys if you like:
-            -- ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
-            -- ["<CR>"] = { "accept", "fallback" },
         },
 
         -- ── Appearance ────────────────────────────────────────────────────────
@@ -101,14 +94,48 @@ return {
 
             -- Per-filetype source overrides (optional):
             per_filetype = {
-                sql = {},
-                mysql = {},
+                sql = { inherit_defaults = true, "dadbod" },
+                mysql = { inherit_defaults = true, "dadbod" },
+                plsql = { inherit_defaults = true, "dadbod" },
             },
 
             -- Per-source tuning lives here. See the "adding sources" notes below.
             providers = {
-                -- Example: nudge buffer completions lower so LSP wins ties
-                buffer = { score_offset = -3 },
+                lsp = {
+                    name = "lsp",
+                    enabled = true,
+                    module = "blink.cmp.sources.lsp",
+                    min_keyword_length = 0,
+                    score_offset = 90,
+                },
+                path = {
+                    name = "Path",
+                    module = "blink.cmp.sources.path",
+                    score_offset = 25,
+                    fallbacks = { "snippets", "buffer" },
+                    opts = {
+                        trailing_slash = false,
+                        label_trailing_slash = true,
+                        get_cwd = function(context)
+                            return vim.fn.expand(("#%d:p:h"):format(context.bufnr))
+                        end,
+                        show_hidden_files_by_default = true,
+                    },
+                },
+                buffer = {
+                    name = "Buffer",
+                    enabled = true,
+                    max_items = 3,
+                    module = "blink.cmp.sources.buffer",
+                    min_keyword_length = 2,
+                    score_offset = 15, -- the higher the number, the higher the priority
+                },
+                dadbod = {
+                    name = "Dadbod",
+                    module = "vim_dadbod_completion.blink",
+                    min_keyword_length = 2,
+                    score_offset = 85, -- the higher the number, the higher the priority
+                },
             },
         },
 
