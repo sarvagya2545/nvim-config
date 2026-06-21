@@ -1,9 +1,11 @@
 return {
     "hrsh7th/nvim-cmp",
-    event = "VeryLazy",
+    enabled = false,
+    event = "InsertEnter",
     dependencies = {
         "hrsh7th/cmp-buffer", -- source for text in buffer
         "hrsh7th/cmp-path", -- source for file system paths
+        "hrsh7th/cmp-nvim-lua",
         "hrsh7th/cmp-nvim-lsp",
         {
             "L3MON4D3/LuaSnip",
@@ -23,6 +25,11 @@ return {
         local luasnip = require("luasnip")
 
         local lspkind = require("lspkind")
+
+        -- cmp.register_source("buffer", require("cmp_buffer"))
+        cmp.register_source("path", require("cmp_path").new())
+        -- cmp.register_source("luasnip", require("cmp_luasnip").new())
+        -- require("cmp_nvim_lsp").setup()
 
         -- loads vscode style snippets from installed plugins (e.g. friendly-snippets)
         require("luasnip.loaders.from_vscode").lazy_load()
@@ -47,12 +54,12 @@ return {
                 ["<CR>"] = cmp.mapping.confirm({ select = false }),
             }),
             -- sources for autocompletion
-            sources = cmp.config.sources({
+            sources = {
                 { name = "nvim_lsp" },
                 { name = "luasnip" }, -- snippets
                 { name = "buffer" }, -- text within current buffer
                 { name = "path" }, -- file system paths
-            }),
+            },
             -- configure lspkind for vs-code like pictograms in completion menu
             formatting = {
                 format = lspkind.cmp_format({
