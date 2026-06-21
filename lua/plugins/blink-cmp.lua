@@ -2,26 +2,19 @@
 -- blink.cmp — stable v1 configuration for lazy.nvim
 -- Docs: https://cmp.saghen.dev
 
-local function testfunc() end
-testfunc()
-
 return {
     "saghen/blink.cmp",
-    version = "1.*",
+    version = "1.*", -- pinned to v1 because v2 is in active development
 
     dependencies = {
-        "rafamadriz/friendly-snippets", -- community snippets for the `snippets` source
-        -- 'L3MON4D3/LuaSnip',          -- uncomment if you want LuaSnip instead of vim.snippet
+        "rafamadriz/friendly-snippets",
+        -- 'L3MON4D3/LuaSnip',
     },
 
     -- Load on insert/cmdline so startup stays fast (lazy.nvim handles this).
     event = { "InsertEnter", "CmdlineEnter" },
 
-    --- @module 'blink.cmp'
-    --- @type blink.cmp.Config
     opts = {
-        -- ── Keymap ────────────────────────────────────────────────────────────
-        -- Presets: 'default' (C-y to accept), 'super-tab', 'enter', 'none'.
         keymap = {
             preset = "default",
             ["<C-k>"] = { "select_prev", "fallback" },
@@ -30,7 +23,6 @@ return {
             ["<C-d>"] = { "scroll_documentation_down", "fallback" },
         },
 
-        -- ── Appearance ────────────────────────────────────────────────────────
         appearance = {
             -- 'mono' for 'Nerd Font Mono', 'normal' for 'Nerd Font'
             nerd_font_variant = "mono",
@@ -38,9 +30,7 @@ return {
             use_nvim_cmp_as_default = false,
         },
 
-        -- ── Completion behaviour ──────────────────────────────────────────────
         completion = {
-            -- Resolve and apply additional text edits (e.g. auto-imports) on accept
             accept = {
                 auto_brackets = { enabled = true }, -- add () after functions
             },
@@ -75,7 +65,6 @@ return {
             },
         },
 
-        -- ── Signature help (function arg hints) ───────────────────────────────
         signature = {
             enabled = true,
             window = { border = "rounded" },
@@ -86,20 +75,13 @@ return {
         -- 'mini_snippets', 'vsnip'. friendly-snippets is auto-loaded for 'default'.
         snippets = { preset = "default" },
 
-        -- ── Sources ───────────────────────────────────────────────────────────
-        -- The four below are built in and enabled by default. Order matters only
-        -- as a tiebreaker; final ranking is by fuzzy score + score_offset.
         sources = {
             default = { "lsp", "path", "snippets", "buffer" },
-
-            -- Per-filetype source overrides (optional):
             per_filetype = {
                 sql = { inherit_defaults = true, "dadbod" },
                 mysql = { inherit_defaults = true, "dadbod" },
                 plsql = { inherit_defaults = true, "dadbod" },
             },
-
-            -- Per-source tuning lives here. See the "adding sources" notes below.
             providers = {
                 lsp = {
                     name = "lsp",
@@ -139,9 +121,6 @@ return {
             },
         },
 
-        -- ── Fuzzy matcher ─────────────────────────────────────────────────────
-        -- 'prefer_rust_with_warning' (default): use the Rust binary, warn + fall
-        -- back to Lua if it's missing. Use 'lua' to avoid the binary entirely.
         fuzzy = { implementation = "prefer_rust_with_warning" },
 
         -- Command line keybinds ------------------------------------------------
