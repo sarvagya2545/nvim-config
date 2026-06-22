@@ -76,41 +76,48 @@ return {
                 },
             })
 
-            local colors = {
-                blue = "#65D1FF",
-                green = "#3EFFDC",
-                violet = "#FF61EF",
-                yellow = "#FFDA7B",
-                red = "#FF4A4A",
-                fg = "#c3ccdc",
-                bg = "#112638",
-                inactive_bg = "#2c3043",
-            }
+            local function set_statusline_hl()
+                local colors = {
+                    blue = "#65D1FF",
+                    green = "#3EFFDC",
+                    violet = "#FF61EF",
+                    yellow = "#FFDA7B",
+                    red = "#FF4A4A",
+                    fg = "#c3ccdc",
+                    bg = "#112638",
+                    inactive_bg = "#2c3043",
+                }
 
-            local hl = vim.api.nvim_set_hl
+                local hl = vim.api.nvim_set_hl
 
-            -- Mode highlight groups
-            hl(0, "MiniStatuslineModeNormal", { fg = colors.bg, bg = colors.blue, bold = true })
-            hl(0, "MiniStatuslineModeInsert", { fg = colors.bg, bg = colors.green, bold = true })
-            hl(0, "MiniStatuslineModeVisual", { fg = colors.bg, bg = colors.violet, bold = true })
-            hl(0, "MiniStatuslineModeCommand", { fg = colors.bg, bg = colors.yellow, bold = true })
-            hl(0, "MiniStatuslineModeReplace", { fg = colors.bg, bg = colors.red, bold = true })
+                -- Mode highlight groups
+                hl(0, "MiniStatuslineModeNormal", { fg = colors.bg, bg = colors.blue, bold = true })
+                hl(0, "MiniStatuslineModeInsert", { fg = colors.bg, bg = colors.green, bold = true })
+                hl(0, "MiniStatuslineModeVisual", { fg = colors.bg, bg = colors.violet, bold = true })
+                hl(0, "MiniStatuslineModeCommand", { fg = colors.bg, bg = colors.yellow, bold = true })
+                hl(0, "MiniStatuslineModeReplace", { fg = colors.bg, bg = colors.red, bold = true })
 
-            -- Left side highlight groups
-            hl(0, "MiniStatuslineFilename", { fg = colors.fg, bg = colors.bg })
-            hl(0, "MiniStatuslineBranch", { fg = colors.fg, bg = colors.inactive_bg })
-            hl(0, "MiniStatuslineDiagnostic", { fg = colors.fg, bg = colors.bg })
+                -- Left side highlight groups
+                hl(0, "MiniStatuslineFilename", { fg = colors.fg, bg = colors.bg })
+                hl(0, "MiniStatuslineBranch", { fg = colors.fg, bg = colors.inactive_bg })
+                hl(0, "MiniStatuslineDiagnostic", { fg = colors.fg, bg = colors.bg })
 
-            -- Git diff highlight groups
-            hl(0, "MiniStatuslineAdded", { fg = colors.green, bg = colors.bg })
-            hl(0, "MiniStatuslineChanged", { fg = colors.yellow, bg = colors.bg })
-            hl(0, "MiniStatuslineRemoved", { fg = colors.red, bg = colors.bg })
+                -- Git diff highlight groups
+                hl(0, "MiniStatuslineAdded", { fg = colors.green, bg = colors.bg })
+                hl(0, "MiniStatuslineChanged", { fg = colors.yellow, bg = colors.bg })
+                hl(0, "MiniStatuslineRemoved", { fg = colors.red, bg = colors.bg })
 
-            -- Right side highlight groups
-            hl(0, "MiniStatuslineLazyUpdates", { fg = "#ff9e64", bg = colors.bg })
-            hl(0, "MiniStatuslineEncoding", { fg = colors.fg, bg = colors.bg })
-            hl(0, "MiniStatuslineFileinfo", { fg = colors.fg, bg = colors.inactive_bg })
-            hl(0, "MiniStatuslineInactive", { fg = colors.fg, bg = colors.inactive_bg })
+                -- Right side highlight groups
+                hl(0, "MiniStatuslineLazyUpdates", { fg = "#ff9e64", bg = colors.bg })
+                hl(0, "MiniStatuslineEncoding", { fg = colors.fg, bg = colors.bg })
+                hl(0, "MiniStatuslineFileinfo", { fg = colors.fg, bg = colors.inactive_bg })
+                hl(0, "MiniStatuslineInactive", { fg = colors.fg, bg = colors.inactive_bg })
+            end
+
+            set_statusline_hl()
+            vim.api.nvim_create_autocmd("ColorScheme", {
+                callback = set_statusline_hl,
+            })
 
             vim.api.nvim_create_autocmd("User", {
                 pattern = "GitSignsUpdate",
