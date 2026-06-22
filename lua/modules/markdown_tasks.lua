@@ -51,6 +51,11 @@ local function get_task_context(opts)
     }
 end
 
+local function time_in_tz(offset_hours, format)
+    local t = os.time() + math.floor(offset_hours * 3600)
+    return os.date(format, t)
+end
+
 -- If there is no `untoggled` or `done` label on an item, mark it as done
 -- and move it to the "## completed tasks" markdown heading in the same file, if
 -- the heading does not exist, it will be created, if it exists, items will be
@@ -67,7 +72,7 @@ function M.toggle_done(opts)
     -- NOTE: Customize the completion label
     local label_done = "done:"
     -- NOTE: Customize the timestamp format
-    local timestamp = os.date("%y%m%d-%H%M")
+    local timestamp = time_in_tz(5.5, "!%Y-%m-%d %I:%M:%S %p") -- 5.5 is the offset_hours for IST (+05:30)
     -- local timestamp = os.date("%y%m%d")
     -- NOTE: Customize the heading and its level
     local tasks_heading = "## Completed Tasks"
