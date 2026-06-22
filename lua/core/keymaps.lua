@@ -41,3 +41,9 @@ vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
 -- vim.keymap.set("n", "<M-t>", "<cmd>silent !tmux neww tmux-sessionizer -s 1<CR>")
 -- vim.keymap.set("n", "<M-n>", "<cmd>silent !tmux neww tmux-sessionizer -s 2<CR>")
 -- vim.keymap.set("n", "<M-s>", "<cmd>silent !tmux neww tmux-sessionizer -s 3<CR>")
+
+-- <C-k> and <C-j> have different meanings in command mode
+-- we need to bind them for completions using blink-cmp
+vim.keymap.set("c", "<C-x>", function()
+    return "<C-k>"
+end, { expr = true, replace_keycodes = true })
