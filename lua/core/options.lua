@@ -29,6 +29,23 @@ opt.backspace = "indent,eol,start" -- allow backspace on indent, end of line or 
 
 -- clipboard
 opt.clipboard:append("unnamedplus") -- use system clipboard as default register
+vim.g.clipboard = {
+    name = "OSC 52",
+    copy = {
+        ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+        ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+    },
+    paste = {
+        -- Return the last yank instead of querying WezTerm (which never answers).
+        -- Avoids the 10s freeze; p still pastes nvim-internal yanks correctly.
+        ["+"] = function()
+            return { vim.fn.split(vim.fn.getreg(""), "\n"), vim.fn.getregtype("") }
+        end,
+        ["*"] = function()
+            return { vim.fn.split(vim.fn.getreg(""), "\n"), vim.fn.getregtype("") }
+        end,
+    },
+}
 
 -- split windows
 opt.splitright = true -- split vertical window to the right
