@@ -47,6 +47,7 @@ return {
     {
         "3rd/image.nvim",
         dependencies = { "nvim-mini/mini.files" },
+        build = false,
         opts = {
             backend = "kitty",
             kitty_method = "normal",
