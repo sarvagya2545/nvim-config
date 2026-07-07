@@ -1,5 +1,11 @@
 return {
-    { "https://github.com/bullets-vim/bullets.vim" }, -- for auto bullet points and lists
+    {
+        "https://github.com/bullets-vim/bullets.vim",
+        config = function()
+            vim.g.bullets_outline_levels = { "num" }
+            vim.g.bullets_renumber_on_change = 0
+        end,
+    }, -- for auto bullet points and lists
     {
         "MeanderingProgrammer/render-markdown.nvim",
         -- dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-mini/mini.nvim" }, -- if you use the mini.nvim suite

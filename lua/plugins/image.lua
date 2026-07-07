@@ -99,7 +99,7 @@ return {
             -- ---------- shared helpers ----------
             local rendered = nil -- currently shown image object
 
-            local IMG_EXT = { png = 1, jpg = 1, jpeg = 1, gif = 1, webp = 1, avif = 1 }
+            local IMG_EXT = { png = 1, jpg = 1, jpeg = 1, gif = 1, webp = 1, avif = 1, svg = 1 }
             local function is_image(path)
                 if not path then
                     return false
@@ -162,7 +162,7 @@ return {
                 render(path, win, buf)
             end
 
-            local img_glob = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif" }
+            local img_glob = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif", "*.svg" }
             vim.api.nvim_create_autocmd("BufWinEnter", {
                 pattern = img_glob,
                 callback = buffer_show,

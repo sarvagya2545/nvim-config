@@ -4,6 +4,12 @@
 -- - todo lists
 -- - jump between headers
 
+----------------------- OPTIONS -----------------------
+vim.opt_local.expandtab = true
+vim.opt_local.tabstop = 2
+vim.opt_local.shiftwidth = 2 -- default: bullets and prose
+vim.opt_local.softtabstop = 2
+
 local function markdown_folds()
     -- Checks each line to see if it matches a markdown heading (#, ##, etc.):
     -- It’s called implicitly by Neovim’s folding engine by vim.opt_local.foldexpr
