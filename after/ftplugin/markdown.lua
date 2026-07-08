@@ -211,7 +211,7 @@ local function todo_items()
     -- Iterate through incomplete tasks in telescope
     -- You can confirm in your teminal lamw25wmal with:
     -- rg "^\s*-\s\[ \]" test-markdown.md
-    vim.keymap.set("n", "<leader>tt", function()
+    vim.keymap.set("n", "<leader>ti", function()
         require("telescope.builtin").grep_string(require("telescope.themes").get_ivy({
             prompt_title = "Incomplete Tasks",
             -- search = "- \\[ \\]", -- Fixed search term for tasks

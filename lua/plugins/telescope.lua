@@ -48,6 +48,7 @@ return {
         keymap.set("n", "<leader>fs", builtin.live_grep, { desc = "Find string in cwd" })
         keymap.set("n", "<leader>fc", builtin.grep_string, { desc = "Find string under cursor in cwd" })
         keymap.set("n", "<leader>ft", "<cmd>TodoTelescope<cr>", { desc = "Find todos" })
+        keymap.set("n", "<leader>tt", "<cmd>Telescope builtin<cr>", { desc = "Telescope builtin" })
 
         -- git branch keymaps
         keymap.set("n", "<leader>fb", function()
