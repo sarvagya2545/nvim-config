@@ -129,6 +129,7 @@ return {
         -- Command line keybinds ------------------------------------------------
         cmdline = {
             enabled = true,
+            sources = { "cmdline" },
             keymap = {
                 preset = "cmdline",
                 ["<C-k>"] = { "select_prev", "fallback" },

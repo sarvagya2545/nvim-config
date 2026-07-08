@@ -4,6 +4,12 @@
 -- - todo lists
 -- - jump between headers
 
+----------------------- OPTIONS -----------------------
+vim.opt_local.expandtab = true
+vim.opt_local.tabstop = 2
+vim.opt_local.shiftwidth = 2 -- default: bullets and prose
+vim.opt_local.softtabstop = 2
+
 local function markdown_folds()
     -- Checks each line to see if it matches a markdown heading (#, ##, etc.):
     -- It’s called implicitly by Neovim’s folding engine by vim.opt_local.foldexpr
@@ -158,14 +164,14 @@ local function markdown_folds()
 end
 
 local function todo_items()
-    vim.keymap.set({ "n" }, "<leader>td", function()
+    vim.keymap.set({ "n", "i" }, "<M-x>", function()
         require("modules.markdown_tasks").toggle_done()
     end, { desc = "Toggle task and move it to 'done'" })
 
     -- Create task or checkbox lamw26wmal
     -- These are marked with <leader>x using bullets.vim
     -- I used <C-l> before, but that is used for pane navigation
-    vim.keymap.set({ "n" }, "<leader>ta", function()
+    vim.keymap.set({ "n", "i" }, "<M-t>", function()
         -- Get the current line/row/column
         local cursor_pos = vim.api.nvim_win_get_cursor(0)
         local row, _ = cursor_pos[1], cursor_pos[2]

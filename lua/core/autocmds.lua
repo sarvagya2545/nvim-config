@@ -49,9 +49,8 @@ vim.api.nvim_create_autocmd("FileType", {
             end)
         end
 
-        vim.api.nvim_buf_create_user_command(buf, "Run", run, {})
-
         if vim.env.NVIM_CONTEST_MODE == "1" then
+            vim.api.nvim_buf_create_user_command(buf, "Run", run, {})
             vim.keymap.set("n", "<leader>r", run, { buffer = buf, desc = "Compile & run C++" })
         end
     end,
