@@ -36,6 +36,9 @@ return {
             },
 
             menu = {
+                auto_show = function(_, _)
+                    return vim.bo.filetype ~= "markdown" -- note: ~= , show everywhere EXCEPT markdown
+                end,
                 border = "none",
                 draw = {
                     -- Treesitter-highlight the label text for these sources
