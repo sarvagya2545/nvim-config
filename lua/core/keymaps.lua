@@ -36,14 +36,12 @@ keymap.set("n", "<C-k>", "<C-w><C-k>", { desc = "Move focus to the upper window"
 
 -- tmux sessionizer keymaps
 vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
--- TODO: configure these later
--- vim.keymap.set("n", "<M-h>", "<cmd>silent !tmux neww tmux-sessionizer -s 0<CR>")
--- vim.keymap.set("n", "<M-t>", "<cmd>silent !tmux neww tmux-sessionizer -s 1<CR>")
--- vim.keymap.set("n", "<M-n>", "<cmd>silent !tmux neww tmux-sessionizer -s 2<CR>")
--- vim.keymap.set("n", "<M-s>", "<cmd>silent !tmux neww tmux-sessionizer -s 3<CR>")
 
 -- <C-k> and <C-j> have different meanings in command mode
 -- we need to bind them for completions using blink-cmp
 vim.keymap.set("c", "<C-x>", function()
     return "<C-k>"
 end, { expr = true, replace_keycodes = true })
+
+-- chmod the current file
+vim.keymap.set("n", "<leader>cx", "<cmd>!chmod +x %<CR>", { desc = "chmod +x current file" })
