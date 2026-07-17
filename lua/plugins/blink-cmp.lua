@@ -37,7 +37,7 @@ return {
 
             menu = {
                 auto_show = function(_, _)
-                    return vim.bo.filetype ~= "markdown" -- note: ~= , show everywhere EXCEPT markdown
+                    return true
                 end,
                 border = "none",
                 draw = {
