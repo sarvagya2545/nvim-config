@@ -32,7 +32,7 @@ return {
             "bash-language-server",
             "marksman",
         }
-        local formatters = { "prettier", "stylua", "clang-format" }
+        local formatters = { "prettier", "stylua", "clang-format", "mdformat" }
         local linters = { "eslint_d" }
         local debuggers = { "debugpy" }
 
