@@ -22,7 +22,7 @@ return {
                 html = { "prettier" },
                 json = { "prettier" },
                 yaml = { "prettier" },
-                markdown = { "mdformat" },
+                markdown = { "prettier" },
                 lua = { "stylua" },
                 python = { "isort", "black" },
             },
