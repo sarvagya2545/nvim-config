@@ -13,7 +13,17 @@ return {
         dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" }, -- if you prefer nvim-web-devicons
         ---@module 'render-markdown'
         ---@type render.md.UserConfig
-        opts = {},
+        opts = {
+            code = {
+                render_modes = true,
+            },
+            heading = {
+                render_modes = true,
+            },
+            links = {
+                render_modes = true,
+            },
+        },
     },
     {
         "iamcco/markdown-preview.nvim",
@@ -21,6 +31,9 @@ return {
         build = "cd app && npm install && git restore .",
         init = function()
             vim.g.mkdp_filetypes = { "markdown" }
+            vim.g.mkdp_port = "9090"
+            vim.g.mkdp_echo_preview_url = 1
+            vim.g.mkdp_theme = "light"
         end,
         ft = { "markdown" },
         keys = {
